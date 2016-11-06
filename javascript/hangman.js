@@ -67,11 +67,15 @@ function setWordBlank(letter) {
 			}
 		}
 	} else {
-		for (i=0; i < currentWord.length; i++) {
-			if (currentWord[i] == letter) {
-				wordBlank[i] = letter;
-			}
-		}
+        for (i=0; i < currentWord.length; i++) {
+            if (currentWord[i] == letter) {  
+                wordBlank += letter;
+            }else if(currentWord[i] == " "){
+                wordBlank += " ";
+            }else{
+                wordBlank += "_"
+            }
+        }
 	}
 //displays blanks in place of word on html page
 	document.getElementById("headerText").innerHTML = wordBlank;
