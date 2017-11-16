@@ -14,9 +14,11 @@
         }
 
         #top {
+            border: medium solid teal;
             background: rgba(236, 234, 234, 0.7);
             padding: 2% 0 4%;
             margin: 4% 8%;
+            box-shadow: 0 0px 10px 3px rgba(0, 0, 0, 0.5);
         }
 
         .red {
@@ -54,14 +56,14 @@
             height: 3rem;
             width: 2rem;
             border-radius: 20%;
-            background-color: white;
-            box-shadow: 0 0 0.2px 0px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0.2px 0 rgba(0, 0, 0, 0.5);
+            background-color: rgb(255, 255, 255);
         }
 
         button:hover:not(.clicked) {
-            font-size: 1.01rem;
-            background-color: lightgrey;
-            box-shadow: 0 0 10px 0.5px black;
+            background-color: rgb(241, 241, 241);
+            font-weight: 550;
+            box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.5);
         }
 
         button.clicked {
@@ -80,8 +82,13 @@
         }
 
         #startBtn {
+            font-size: 1.25rem;
             width: 25%;
             margin: 0 auto;
+        }
+
+        #startBtn:hover {
+            font-size: 1.35rem;
         }
     </style>
 
@@ -117,7 +124,7 @@
 
         //document load
         //variables - random word array, wins, losses, guesses remaining
-        var wordBank = ["Tim Curry", "Bill Murray", "Angela Landsbury"];
+        var wordBank = ["Tim Curry", "Bill Murray", "Angela Lansbury"];
         var wins = 0;
         var losses = 0;
         var imgNum;
@@ -208,6 +215,7 @@
                         if (randomWord.toLowerCase().indexOf(userInput) === -1) { //the user is wrong
                             alreadyGuessed.push(userInput); //sends the guessed letter to the array
                             guessesRemaining--;
+                            //processes which image should be shown for the progression of the game
                             imgNum++;
                             document.getElementById("hangman").setAttribute("src", "hangmanseries" + imgNum + ".jpg");
                             changeHTML("guessesRemaining", "Guesses Remaining: " + guessesRemaining);
@@ -228,9 +236,11 @@
             function isGameOver() {
                 if (guessesRemaining <= 0) {
                     losses++;
+                    //have all the missed letters show up on game over
                     for (let i = 0; i < randomWord.length; i++) {
                         // if (answerArray[i] === "_") {
                         answerArray[i] = randomWord[i];
+                        //     console.log(document.getElementById("wordToGuess").textContent[i])
                         // }
                     }
                     changeHTML("wordToGuess", answerArray.join(""));
@@ -241,7 +251,7 @@
                 }
             }
 
-            function askToReplay() {
+            function askToReplay() { //displays the play again button while hiding non-persistent data divs
                 changeHTML("wins", "Wins: " + wins);
                 changeHTML("losses", "Losses: " + losses);
                 showHide("startBtn", "block");
