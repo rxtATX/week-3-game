@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hangman</title>
+
+    <style>
+        html {
+            overflow: hidden;
+            background: url("Swirl.jpg") center fixed;
+        }
+
+        #top {
+            background: rgba(236, 234, 234, 0.7);
+            padding: 2% 0 4%;
+            margin: 4% 8%;
+        }
+
+        .red {
+            color: red;
+        }
+
+        #imgBox {
+            width: 6%;
+            transform: scale(2.2);
+            margin: 5% auto;
+        }
+
+        #wrapper {
+            width: 50%;
+            margin: auto;
+        }
+
+        #wordToGuess {
+            font-size: 3rem;
+            text-align: center;
+            margin: 15% 10% 1%;
+        }
+
+        .scoreKeeper {
+            text-align: center;
+        }
+
+        .scoreKeeper>* {
+            display: inline-block;
+            margin: 1%;
+        }
+
+        button {
+            margin: .4% .1%;
+            height: 3rem;
+            width: 2rem;
+            border-radius: 20%;
+            background-color: white;
+            box-shadow: 0 0 0.2px 0px rgba(0, 0, 0, 0.5);
+        }
+
+        button:hover:not(.clicked) {
+            font-size: 1.01rem;
+            background-color: lightgrey;
+            box-shadow: 0 0 10px 0.5px black;
+        }
+
+        button.clicked {
+            background-color: darkgray;
+        }
+
+        #buttonArea {
+            transform: scale(1.4);
+            margin: 5%;
+            text-align: center
+        }
+
+        #guessedDiv {
+            float: left;
+            margin: -40% 0 0 15%;
+        }
+
+        #startBtn {
+            width: 25%;
+            margin: 0 auto;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- div to display win/loss track, and another one to keep track of the already guessed letters -->
+    <section id="top">
+        <div class="scoreKeeper">
+            <h2 id="wins"></h2>
+            <h2 id="losses"></h2>
+            <h2 id="guessesRemaining"></h2>
+        </div>
+
+        <!-- div to hold the underscores/correctly guessed letters -->
+        <div id="imgBox">
+            <img id="hangman" src="hangmanseries1.jpg" />
+        </div>
+        <div id="wrapper">
+            <h1 id="wordToGuess"></h1>
+        </div>
+    </section>
+    <div id="buttonArea"></div>
+    <button id="startBtn">Play again?</button>
+    <!-- Nice to have would be an animation to represent number of guesses remaining until game end. -->
+    <div id="guessedDiv">
+        <h2>Guessed letters:</h2>
+        <h2 id="alreadyGuessed"></h2>
+    </div>
+    <!-- Just capture user input from the window, not an input bar. Maybe we can render some clickable buttons. -->
+
+    <script>
+
+        //document load
+        //variables - random word array, wins, losses, guesses remaining
+        var wordBank = ["Tim Curry", "Bill Murray", "Angela Landsbury"];
+        var wins = 0;
+        var losses = 0;
+        var imgNum;
+        var guessesRemaining;
+        var alreadyGuessed;
+        var randomWord;
+        var answerArray;
+        var buttonArea = document.getElementById('buttonArea');
+        //functions 
+        (function () {
+
+            function generateButtons(array) {
+                showHide("startBtn", "none");
+                showHide("buttonArea", "block");
+                showHide("guessedDiv", "block");
+                showHide("guessesRemaining", "inline-block");
+                document.getElementById("hangman").setAttribute("src", "hangmanseries1.jpg");
+                var alphaRow = document.createElement("div");
+                for (let i = 0; i < array.length; i++) {
+                    //Dynamically render buttons to represent the alphabet.
+                    var alphaBtn = document.createElement("button");
+                    alphaBtn.innerHTML = array[i];
+                    alphaBtn.addEventListener("click", eventListener);
+                    alphaRow.appendChild(alphaBtn);
+                }
+                return alphaRow;
+            }
+            //a random word generator - pick from the word array
+            function startRestart() {
+                const FirstRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
+                const SecondRow = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
+                const ThirdRow = ["Z", "X", "C", "V", "B", "N", "M"];
+
+                while (buttonArea.firstChild) buttonArea.removeChild(buttonArea.firstChild);
+
+                //Dynamically render buttons to represent the alphabet.
+                var alphaRow1 = generateButtons(FirstRow);
+                var alphaRow2 = generateButtons(SecondRow);
+                var alphaRow3 = generateButtons(ThirdRow);
+                buttonArea.appendChild(alphaRow1);
+                buttonArea.appendChild(alphaRow2);
+                buttonArea.appendChild(alphaRow3);
+
+                randomWord = wordBank[Math.floor(Math.random() * wordBank.length)];//Math function using the array to get an random element
+                imgNum = 1;
+                guessesRemaining = 6;
+                alreadyGuessed = [];
+
+                changeHTML("wins", "Wins: " + wins);
+                changeHTML("losses", "Losses: " + losses);
+                changeHTML("guessesRemaining", "Guesses Remaining: " + guessesRemaining);
+                changeHTML("alreadyGuessed", alreadyGuessed.join(" ").toUpperCase());
+
+                generateUnderscore(randomWord); //Preemptive start to an as of yet unwritten funtion
+            }
+            //a functions which takes that random word and replaces all the letters with underscores
+            function generateUnderscore(word) {
+                //in this function I will use 'word' to represent the value
+                //I need as many underscores as there are characters in my random word.
+                //I probably want this to be an array so that I may access indexes on user guess.
+                answerArray = [];
+                for (var i = 0; i < word.length; i++) {
+                    //for each character in word, push an underscore to answerArray
+                    answerArray.push("_");
+                    if (randomWord[i] === " ") {
+                        answerArray[i] = " ";
+                    }
+                }
+                changeHTML("wordToGuess", answerArray.join(""))
+            }
+            //listener for user's keyup - process whether their input is in the word (correct) or not
+            function eventListener(event) {
+                var userInput;
+                if (event.type === "keyup") {
+                    if (event.keyCode >= 65 && event.keyCode <= 90 && !event.ctrlKey && !undefined) { //prevent non-alphabetical keyups from registering
+                        userInput = event.key;
+                    }
+                } else if (event.type === "click") { //allow for clicking alphabet buttons in place of typing guess
+                    userInput = this.innerHTML.toLowerCase();
+                    this.className += "clicked";
+                    this.disabled = true;
+                }
+                if (userInput) {
+                    userInput = userInput.toLowerCase();
+                    //evaluation (determine if/where in the randomWord this key value exists)
+                    if (alreadyGuessed.indexOf(userInput) === -1) {
+
+                        if (randomWord.toLowerCase().indexOf(userInput) === -1) { //the user is wrong
+                            alreadyGuessed.push(userInput); //sends the guessed letter to the array
+                            guessesRemaining--;
+                            imgNum++;
+                            document.getElementById("hangman").setAttribute("src", "hangmanseries" + imgNum + ".jpg");
+                            changeHTML("guessesRemaining", "Guesses Remaining: " + guessesRemaining);
+                            changeHTML("alreadyGuessed", alreadyGuessed.join(" ").toUpperCase());
+                        }
+                        //an if condition, and a for loop to replace the underscores with the correct letter
+                        for (var i = 0; i < randomWord.length; i++) {
+                            if (randomWord[i].toLowerCase() === userInput) { //it's there
+                                answerArray[i] = randomWord[i];
+                            }
+                        }
+                        changeHTML("wordToGuess", answerArray.join(""));
+                    }
+                    isGameOver();
+                }
+            }
+            //a function to check the win/loss conditions
+            function isGameOver() {
+                if (guessesRemaining <= 0) {
+                    losses++;
+                    for (let i = 0; i < randomWord.length; i++) {
+                        // if (answerArray[i] === "_") {
+                        answerArray[i] = randomWord[i];
+                        // }
+                    }
+                    changeHTML("wordToGuess", answerArray.join(""));
+                    askToReplay();
+                } else if (answerArray.join("").toLowerCase() === randomWord.toLowerCase()) {
+                    wins++;
+                    askToReplay();
+                }
+            }
+
+            function askToReplay() {
+                changeHTML("wins", "Wins: " + wins);
+                changeHTML("losses", "Losses: " + losses);
+                showHide("startBtn", "block");
+                showHide("buttonArea", "none");
+                showHide("guessedDiv", "none");
+                showHide("guessesRemaining", "none");
+            }
+
+            function showHide(div, display) {
+                document.getElementById(div).style.display = display;
+            }
+
+            function changeHTML(div, display) {
+                document.getElementById(div).innerHTML = display;
+            }
+
+            document.addEventListener("keyup", eventListener);
+            document.getElementById("startBtn").addEventListener("click", startRestart);
+            startRestart();
+
+        })();
+    </script>
+
+</body>
+
+</html>
